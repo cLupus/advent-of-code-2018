@@ -3,10 +3,37 @@ use std::io::Read;
 use std::collections::HashMap;
 
 fn main() {
+    let ids = get_ids();
+    part_1(&ids);
+    part_2(&ids);
+}
+
+fn part_2(ids: &Vec<String>) {
+    for (index, word) in ids.iter().enumerate() {
+        for other in &ids[index..] {
+            let diff = difference(word, other);
+            if diff.len() == word.len() - 1 {
+                println!("The ID we're looking for is: {}", diff);
+                return;
+            }
+        }
+    }
+}
+
+fn difference(word: &String, other: &String) -> String {
+    let mut common = String::new();
+    for (letter, other) in word.as_bytes().iter().zip(other.as_bytes().iter()) {
+        if letter == other {
+            common.push(*letter as char);
+        }
+    }
+    common
+}
+
+fn part_1(ids: &Vec<String>) -> () {
     let number_to_look_for = [2, 3];
     let mut counter: HashMap<&i32, i32> = HashMap::new();
-
-    for id in get_ids() {
+    for id in ids {
         let counts = get_counts(&id[..]);
         for num in number_to_look_for.iter() {
             let count = counter.entry(num).or_insert(0);
@@ -14,7 +41,7 @@ fn main() {
         }
     }
     let mut hash = 1;
-    for (num, count) in counter {
+    for (_, count) in counter {
         hash *= count;
     }
     println!("The hash of all IDs is: {}", hash)
