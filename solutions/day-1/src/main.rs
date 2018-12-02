@@ -1,16 +1,21 @@
 use std::fs::File;
 use std::io::prelude::*;
+use std::collections::HashSet;
 
 fn main() {
-    part_1();
-    part_2();  // FIXME: Takes 'forever' (but works)
+    let ans = total_sum();
+    println!("The resulting frequency is {}", ans);
+
+    let ans = first_repeating();
+    println!("The first frequency your device reaches twice is: {}", ans);
+
 }
 
-fn part_2() {
+fn first_repeating() -> i32 {
     let mut found = false;
     let mut cumulative = 0;
-    let mut seen_before: Vec<i32> = Vec::new();
-    seen_before.push(cumulative);
+    let mut seen_before: HashSet<i32> = HashSet::new();
+    seen_before.insert(cumulative);
 
     let frequencies = get_frequencies();
 
@@ -21,20 +26,20 @@ fn part_2() {
                 found = true;
                 break;
             } else {
-                seen_before.push(cumulative);
+                seen_before.insert(cumulative);
             }
         }
     }
-    println!("The first frequency your device reaches twice is: {}", cumulative);
+    cumulative
 }
 
-fn part_1() {
+fn total_sum() -> i32 {
     let frequencies = get_frequencies();
     let mut sum = 0;
     for frequency in frequencies {
         sum += frequency;
     }
-    println!("The resulting frequency is {}", sum);
+    sum
 }
 
 fn get_frequencies() -> Vec<i32> {

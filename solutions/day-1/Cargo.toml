@@ -1,6 +1,6 @@
 [package]
 name = "frequencies"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Sindre Nistad <sindre_123@msn.com>"]
 
 [dependencies]
