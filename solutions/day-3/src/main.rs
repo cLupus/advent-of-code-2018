@@ -5,9 +5,23 @@ fn main() {
 
     let mut fabric = [[0; 1000]; 1000];
     let claims = data::get_data();
-    for claim in claims {
+    for claim in claims.iter() {
         claim.cut(&mut fabric);
     }
+    part_1(&mut fabric);
+    part_2(&claims, &fabric);
+}
+
+fn part_2(claims: &Vec<data::Claim>, fabric: &[[i32; 1000]; 1000]) {
+    for claim in claims.iter() {
+        if claim.is_whole(fabric) {
+            println!("The only whole claim has ID: {}", claim.id);
+            break;
+        }
+    }
+}
+
+fn part_1(fabric: &mut [[i32; 1000]; 1000]) {
     let mut counter = 0;
     for i in 0..fabric.len() {
         for j in 0..fabric[0].len() {
@@ -24,14 +38,14 @@ pub mod data {
     use std::io::Read;
 
     use regex::Regex;
-
     pub struct Claim {
-        id: i32,
+        pub id: i32,
         left: usize,
         top: usize,
         width: usize,
         height: usize,
     }
+
     impl Claim {
         pub fn cut (&self, rect: &mut[[i32; 1000]; 1000]) {
             for i in self.left..self.left+self.width {
@@ -46,8 +60,17 @@ pub mod data {
                 }
             }
         }
+        pub fn is_whole(&self, rect: &[[i32; 1000]; 1000]) -> bool {
+            for i in self.left..self.left+self.width {
+                for j in self.top..self.top+self.height {
+                    if rect[i][j] != self.id {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
     }
-
 
 //    pub fn get_data() -> Vec<Claim> {}
 
