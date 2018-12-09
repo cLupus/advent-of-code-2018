@@ -119,8 +119,11 @@ class Node:
 
 
 class Graph:
-    def __init__(self, nodes):
+    def __init__(self, nodes, workers=5, base_task_duration=60):
+        self.workers = workers
+        self.base_task_duration = base_task_duration
         self._nodes = {}
+
         for parent, children in nodes.items():
             parent = self[parent]
             for child in children:
@@ -147,10 +150,53 @@ class Graph:
         while available:
             name, node = heapq.heappop(available)
             _order += name
-            for name, child in node.children.items():
-                if set(_order) >= set([parent.name for parent in child.parents]):
-                    heapq.heappush(available, (name, child))
+            self.add_tasks(_order, available, node)
         return _order
+
+    @staticmethod
+    def add_tasks(_completed, available, node):
+        for name, child in node.children.items():
+            if set(_completed) >= set([parent.name for parent in child.parents]):
+                heapq.heappush(available, (name, child))
+
+    @property
+    def execution_time(self):
+        workers = {worker: {'task': None, 'remaining': 0} for worker in range(self.workers)}
+        _time = 0
+        _done = ''
+        available = list(self.root.children.items())
+        heapq.heapify(available)
+        while any([worker['task'] is not None for worker in workers.values()]) or available:
+            self._assign_work(workers, available)
+            duration, finished = self._work(workers)
+            _time += duration
+            for node in finished:
+                _done += node.name
+            for node in finished:
+                self.add_tasks(_done, available, node)
+        return _time
+
+    def task_duration(self, node):
+        return self.base_task_duration + (bytearray(node.name.upper(), 'ascii')[0] - 64)
+
+    def _assign_work(self, workers, available):
+        for worker in workers.values():
+            if worker['task'] is None and available:
+                _, node = heapq.heappop(available)
+                worker['task'] = node
+                worker['remaining'] = self.task_duration(node)
+
+    def _work(self, workers):
+        finished = []
+        duration = min([worker['remaining'] for worker in workers.values() if worker['task']])
+        for worker in workers.values():
+            if worker['task'] is not None:
+                worker['remaining'] -= duration
+        for worker in workers.values():
+            if worker['task'] and worker['remaining'] == 0:
+                finished.append(worker['task'])
+                worker['task'] = None
+        return duration, finished
 
 
 def get_graph():
@@ -170,8 +216,14 @@ def part_1():
     print(graph.order)
 
 
+def part_2():
+    graph = get_graph()
+    print(graph.execution_time)
+
+
 def run():
     part_1()
+    part_2()
 
 
 if __name__ == '__main__':
