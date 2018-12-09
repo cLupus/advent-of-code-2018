@@ -15,18 +15,28 @@ def index_of_smallest(distances):
     return index
 
 
-def make_grid(points):
+def make_grid(points, metric):
     x_length, y_length = grid_size(points)
     grid = np.zeros((x_length, y_length))
     for i in range(x_length):
         for j in range(y_length):
-            distances = np.array([abs(i - x) + abs(j - y) for x, y in points])
-            if sum(distances == min(distances)) > 1:
-                index = -1
-            else:
-                index = index_of_smallest(distances)
+            index = metric(i, j, points)
             grid[i][j] = index
     return grid
+
+
+def index_of_nearest_point(i, j, points):
+    distances = get_distances(i, j, points)
+    if sum(distances == min(distances)) > 1:
+        index = -1
+    else:
+        index = index_of_smallest(distances)
+    return index
+
+
+def get_distances(i, j, points):
+    distances = np.array([abs(i - x) + abs(j - y) for x, y in points])
+    return distances
 
 
 def grid_size(points):
@@ -70,9 +80,22 @@ def grid_to_string(grid, points):
     return representation
 
 
+def point_within_total_distance(total_distance=10000):
+    def metric(i, j, points):
+        distances = get_distances(i, j, points)
+        return 1 if sum(distances) <= total_distance else -1
+    return metric
+
+
+def part_2():
+    points = get_points()
+    grid = make_grid(points, point_within_total_distance())
+    print(sum(sum(grid == 1)))
+
+
 def part_1():
     points = get_points()
-    grid = make_grid(points)
+    grid = make_grid(points, index_of_nearest_point)
     points_to_consider = get_points_to_consider(grid, points)
     greatest_area = 0
     for point in points_to_consider:
@@ -80,11 +103,11 @@ def part_1():
         if area > greatest_area:
             greatest_area = area
     print(greatest_area)
-    # print(grid_to_string(grid, points))
 
 
 def run():
     part_1()
+    part_2()
 
 
 if __name__ == '__main__':
