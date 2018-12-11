@@ -452,7 +452,6 @@ def get_data():
 
 class STATE(Enum):
     NEW = auto()
-    CHILD = auto()
     METADATA = auto()
 
 
@@ -464,6 +463,16 @@ class Node:
         self._metadata = []
         self._parent = parent
         self.previous = None
+
+    @property
+    def value(self):
+        if not self.children:
+            return sum(self.metadata)
+        return sum([
+            self.children[i - 1].value
+            if 0 < i <= len(self.children) else 0  # I.e. 1-indexed
+            for i in self.metadata
+        ])
 
     @property
     def parent(self):
@@ -503,8 +512,6 @@ def parse_data():
     while data:
         if state == STATE.NEW:
             node = get_node(data, node)
-        elif state == STATE.CHILD:
-            node = get_node(data, node)
         elif state == STATE.METADATA:
             for _ in range(node.expected_num_metadata):
                 node.metadata = data.pop()
@@ -531,7 +538,16 @@ def calculate_metadata_sum(node):
 
 def run():
     root = parse_data()
+    part_1(root)
+    part_2(root)
+
+
+def part_1(root):
     print(calculate_metadata_sum(root))
+
+
+def part_2(root):
+    print(root.value)
 
 
 if __name__ == '__main__':
