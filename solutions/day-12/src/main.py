@@ -25,13 +25,22 @@ class Pots:
                 pots += '.'
         return pots
 
+    def __eq__(self, other):
+        return self.state == other.state
+
+    def __len__(self):
+        return len(self.state)
+
+    @property
+    def state(self):
+        return self._state.strip('.')
+
     def apply(self):
-        # old_state = Pots(f'..{self._state}..', self._rules, self._middle_pot + 2)
         new_state = ''
         for i in range(-2, len(self._state) + 2):
             new_state += self._rules[self[i]]
-        new_state, culled = self._cull(new_state)
-        return Pots(new_state, self._rules, middle_pot_index=self._middle_pot + 2 - culled, generation=self._generation + 1)
+        # new_state, culled = self._cull(new_state)
+        return Pots(new_state, self._rules, middle_pot_index=self._middle_pot + 2, generation=self._generation + 1)
 
     @property
     def sum(self):
@@ -43,10 +52,10 @@ class Pots:
 
     def _cull(self, state):
         culled = 0
-        while self._rules[state[:5]] != '#':
+        while self._rules[state[:5]] != '#' and culled <= self._middle_pot:
             state = state[1:]
             culled += 1
-        while self._rules[state[-5:]] != '#':
+        while self._rules[state[-5:]] != '#' and len(state) > len(self._state):
             state = state[:-1]
         return state, culled
 
@@ -76,11 +85,30 @@ class Rules(dict):
 
 
 def run():
-    data = get_data()
-    for _ in range(20):
-        data = data.apply()
+    initial = get_data()
+    part_1(initial)
+    part_2(initial)
 
-    print(data.sum)
+
+def part_1(initial):
+    pots = germinate(initial, generations=20)
+    print(pots.sum)
+
+
+def part_2(initial):
+    pots = germinate(initial, generations=50_000_000_000)
+    print(pots.sum)
+
+
+def germinate(pots, generations):
+    prev = pots
+    for i in range(generations):
+        next = prev.apply()
+        if prev == next:
+            print('Shortcut in calculations...')
+            print(next.sum + (next.sum - prev.sum) * (generations - i - 1))
+        prev = next
+    return prev
 
 
 if __name__ == '__main__':
